@@ -1,43 +1,7 @@
 import 'dart:io';
-
-enum Level {
-  build,
-  patch,
-  minor,
-  major,
-}
-
-class Version {
-  int major;
-  int minor;
-  int patch;
-  int build;
-  Version(this.major, this.minor, this.patch, this.build);
-
-  Version bump(Level level) {
-    switch (level) {
-      case Level.build:
-        return Version(this.major, this.minor, this.patch, this.build + 1);
-      case Level.patch:
-        return Version(this.major, this.minor, this.patch + 1, 0);
-      case Level.minor:
-        return Version(this.major, this.minor + 1, 0, 0);
-      case Level.major:
-        return Version(this.major + 1, 0, 0, 0);
-      default:
-        throw ArgumentError();
-    }
-  }
-
-  @override
-  String toString() {
-    if (build == 0) {
-      return '$major.$minor.$patch';
-    } else {
-      return '$major.$minor.$patch+$build';
-    }
-  }
-}
+import './level.dart';
+import './version.dart';
+export './level.dart';
 
 Future<Version> updatePubspec(Level level) async {
   final pubspec = await File('pubspec.yaml');
@@ -72,26 +36,49 @@ Future<void> updateChangelog(Version version, String message) async {
   await changelog.writeAsString('## $version\n\n- $message\n\n$content');
 }
 
-Future<void> gitPush() async {}
-Future<void> pubPublish() async {}
+Future<bool> anythingUnstaged() async {
+  final result = await Process.run('git', ['diff', '--exit-code']);
+  return result.exitCode == 1;
+}
 
-Future<Version> pubump({bool push, bool publish, Level level, String message}) async {
+Future<bool> nothingStaged() async {
+  final result = await Process.run('git', ['diff', '--cached', '--exit-code']);
+  return result.exitCode == 0;
+}
+
+void die(String message) {
+  stderr.write('$message\n');
+  exit(1);
+}
+
+Future<String> coloredDiff() async {
+  final result = await Process.run(
+      'git', ['--no-pager', 'diff', '--color', 'HEAD^', '--', 'CHANGELOG.md', 'pubspec.yaml']);
+  return result.stdout;
+}
+
+Future<void> pubump({bool push, bool publish, Level level, String message}) async {
+  // if (await anythingUnstaged()) {
+  //   die('You have unstaged changes; please stash them.');
+  // }
+  if (await nothingStaged()) {
+    die('Please stage the changes (git add ...) you would like pubump to commit.');
+  }
   final version = await updatePubspec(level);
   await updateChangelog(version, message);
+
   final commit = await Process.run('git', ['commit', '-am', '$version: $message']);
   print(commit.stdout);
-  final diff = await Process.run(
-      'git', ['--no-pager', 'diff', '--color', 'HEAD^', '--', 'CHANGELOG.md', 'pubspec.yaml']);
-  print(diff.stdout);
+  print(await coloredDiff());
   if (push) {
-    await gitPush();
+    await Process.run('git', ['push']);
   }
   if (publish) {
-    await pubPublish();
+    await Process.run('pub', ['publish']);
   }
   final verbed =
       push ? (publish ? 'Pushed and published' : 'Pushed') : (publish ? 'Published' : 'Created');
-  stderr.write('$verbed version $version\n');
+  print('$verbed version $version');
 
-  return version;
+  exit(0);
 }

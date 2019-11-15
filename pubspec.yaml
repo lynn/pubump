@@ -1,14 +1,14 @@
 name: pubump
 description: A tool for making quick versioned changes to a Dart package.
-version: 0.1.0
+version: 0.1.1
 homepage: https://github.com/lynn/pubump
 author: Lynn <lynn@foldr.moe>
 
 environment:
   sdk: '>=2.2.0 <3.0.0'
 
-#dependencies:
-#  path: ^1.4.1
+dependencies:
+  args: ^1.5.2
 
 dev_dependencies:
   pedantic: ^1.0.0
