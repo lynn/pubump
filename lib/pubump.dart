@@ -57,6 +57,14 @@ Future<String> coloredDiff() async {
   return result.stdout;
 }
 
+ProcessResult successfully(ProcessResult result) {
+  if (result.exitCode != 0) {
+    stderr.write(result.stderr);
+    exit(1);
+  }
+  return result;
+}
+
 Future<void> pubump({bool push, bool publish, Level level, String message}) async {
   // if (await anythingUnstaged()) {
   //   die('You have unstaged changes; please stash them.');
@@ -67,14 +75,14 @@ Future<void> pubump({bool push, bool publish, Level level, String message}) asyn
   final version = await updatePubspec(level);
   await updateChangelog(version, message);
 
-  final commit = await Process.run('git', ['commit', '-am', '$version: $message']);
+  final commit = successfully(await Process.run('git', ['commit', '-am', '$version: $message']));
   print(commit.stdout);
   // print(await coloredDiff());
   if (push) {
-    await Process.run('git', ['push']);
+    successfully(await Process.run('git', ['push']));
   }
   if (publish) {
-    await Process.run('pub', ['publish']);
+    successfully(await Process.run('pub', ['publish', '--force']));
   }
   final verbed =
       push ? (publish ? 'Pushed and published' : 'Pushed') : (publish ? 'Published' : 'Created');
