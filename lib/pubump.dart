@@ -69,7 +69,7 @@ Future<void> pubump({bool push, bool publish, Level level, String message}) asyn
 
   final commit = await Process.run('git', ['commit', '-am', '$version: $message']);
   print(commit.stdout);
-  print(await coloredDiff());
+  // print(await coloredDiff());
   if (push) {
     await Process.run('git', ['push']);
   }

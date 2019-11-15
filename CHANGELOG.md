@@ -1,3 +1,7 @@
+## 0.1.2
+
+- Test
+
 ## 0.1.1
 
 - Use ArgParser
