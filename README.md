@@ -18,6 +18,12 @@ This tool automates exactly those steps.
 ~ $ pubump minor "Fix this and that"
 ```
 
+## Installing
+
+Clone this repository, then put `alias pubump=/path/to/pubump/bin/main.dart` in your .bashrc (or equivalent).
+
+pubump needs the [Dart VM](https://dart.dev/tools/dart-vm) to run.
+
 ## Usage
 
 ```
