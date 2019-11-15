@@ -75,7 +75,7 @@ Future<void> pubump({bool push, bool publish, Level level, String message}) asyn
   }
   if (publish) {
     await Process.run('pub', ['publish']);
-  }
+  } 
   final verbed =
       push ? (publish ? 'Pushed and published' : 'Pushed') : (publish ? 'Published' : 'Created');
   print('$verbed version $version');
